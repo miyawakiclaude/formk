@@ -897,7 +897,7 @@ function buildConfirm(){
 
 // ─── GAS エンドポイント ───
 // ★ デプロイ後にここを書き換える
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbx94LIcz3dFVGjdkwteP5TD0haxbW__KNdnUxVcmaQRO6dA0aj7qIy7uWfEQYpQAjh_/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyY8grkt9LygZ05nYwP9B-UljfEdwCWN1Osb0x4LWyCS2gvoQvEA2BEdrG_ZfvJuX_4/exec';
 
 // ─── SUBMIT ───
 async function submitForm(){
@@ -912,7 +912,6 @@ async function submitForm(){
   btn.disabled=true;
   btn.textContent='送信中...';
 
-  // 送信データを組み立て
   const payload={
     trialICT: document.querySelector('input[name="trialICT"]:checked')?.value||'',
     functions: [...document.querySelectorAll('[id^="fn"]:checked')].filter(el=>/^fn\d$/.test(el.id)).map(el=>el.value),
@@ -937,16 +936,18 @@ async function submitForm(){
     }))
   };
 
-  try{
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if(json.status !== 'ok') throw new Error(json.message);
-  } catch(e){
-    // GAS_URLが未設定の場合でもフォームは完了させる（本番設定後に削除可）
-    console.warn('GAS送信エラー（URLが未設定の可能性）:', e.message);
+  if(GAS_URL !== 'YOUR_GAS_DEPLOY_URL'){
+    try{
+      // GASはCORSリダイレクトをするため no-cors + text/plain が必須
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      });
+    } catch(e){
+      console.error('送信エラー:', e);
+    }
   }
 
   sessionStorage.removeItem(SKEY);

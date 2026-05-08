@@ -897,7 +897,7 @@ function buildConfirm(){
 
 // ─── GAS エンドポイント ───
 // ★ デプロイ後にここを書き換える
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyY8grkt9LygZ05nYwP9B-UljfEdwCWN1Osb0x4LWyCS2gvoQvEA2BEdrG_ZfvJuX_4/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbybBXJAx9wc3AwNjrSfnEcuSN3e5VrjDe8BRpNYJ6nxthwFcBODq5WzuPjz7ya0zCfq/exec';
 
 // ─── SUBMIT ───
 async function submitForm(){
@@ -936,15 +936,11 @@ async function submitForm(){
     }))
   };
 
+  // 隠しiframe経由でフォームPOST（CORSを完全回避する確実な方法）
   if(GAS_URL !== 'YOUR_GAS_DEPLOY_URL'){
     try{
-      // GASはCORSリダイレクトをするため no-cors + text/plain が必須
-      await fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      });
+      document.getElementById('gas_data').value = JSON.stringify(payload);
+      document.getElementById('gas_form').submit();
     } catch(e){
       console.error('送信エラー:', e);
     }
@@ -990,6 +986,17 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(facilities.length>0) document.getElementById('facilityCount').value=facilities.length;
 });
 </script>
+<!-- 隠しiframe：GASへのPOST送信用（CORSなし） -->
+<iframe name="gas_hidden_iframe" id="gas_hidden_iframe" style="display:none;"></iframe>
+<form
+  id="gas_form"
+  action="https://script.google.com/macros/s/AKfycbybBXJAx9wc3AwNjrSfnEcuSN3e5VrjDe8BRpNYJ6nxthwFcBODq5WzuPjz7ya0zCfq/exec"
+  method="POST"
+  target="gas_hidden_iframe"
+  style="display:none;">
+  <input type="hidden" id="gas_data" name="data">
+</form>
+
 <!-- Begin TimeRex Widget -->
 <script id="timerex_embed" src="https://asset.timerex.net/js/embed.js"></script>
 <!-- End TimeRex Widget -->
